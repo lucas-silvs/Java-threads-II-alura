@@ -1,6 +1,8 @@
 package org.lucassilvs.servidor;
 
+import java.io.IOException;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class DistribuirTarefas implements Runnable{
 
@@ -17,9 +19,16 @@ public class DistribuirTarefas implements Runnable{
 
         System.out.println("distribuindo tarefas para " + socket.getPort());
 
+        Scanner entradaCliente;
         try {
-            Thread.sleep(20000);
-        } catch (InterruptedException e) {
+            entradaCliente = new Scanner(socket.getInputStream());
+
+            while (entradaCliente.hasNextLine()){
+                String comando = entradaCliente.nextLine();
+                System.out.println(comando);
+            }
+            entradaCliente.close();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
