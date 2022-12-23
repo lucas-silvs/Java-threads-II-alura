@@ -1,6 +1,5 @@
 package org.lucassilvs.servidor;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Scanner;
@@ -10,9 +9,11 @@ public class DistribuirTarefas implements Runnable{
 
     private Socket socket;
 
-    public DistribuirTarefas(Socket socket) {
+    private ServidorTarefas servidorTarefas;
 
+    public DistribuirTarefas(Socket socket, ServidorTarefas servidorTarefas) {
         this.socket = socket;
+        this.servidorTarefas = servidorTarefas;
     }
 
     @Override
@@ -38,6 +39,11 @@ public class DistribuirTarefas implements Runnable{
                     }
                     case "c2":{
                         saidaCliente.println("Comando C2 executado");
+                        break;
+                    }
+                    case "off":{
+                        saidaCliente.println("Desligando Servidor");
+                        servidorTarefas.parar();
                         break;
                     }
                     default:{

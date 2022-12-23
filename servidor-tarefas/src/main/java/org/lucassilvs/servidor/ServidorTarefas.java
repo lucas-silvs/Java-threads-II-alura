@@ -3,29 +3,56 @@ package org.lucassilvs.servidor;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ServidorTarefas {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    private final ServerSocket servidor;
+    private final ExecutorService threadPool;
 
-        ServerSocket servidor = new ServerSocket(5000);
-        //ExecutorService threadPool = Executors.newFixedThreadPool(2); numero fixo de Threads disponiveis para uso
-        ExecutorService threadPool = Executors.newCachedThreadPool(); // Tamanho dinâmico
+    private AtomicBoolean rodando;
 
-
+    public ServidorTarefas() throws IOException {
+        this.servidor = new ServerSocket(5000);
+        this.threadPool = Executors.newCachedThreadPool();  // Tamanho dinâmico
+        this.rodando = new AtomicBoolean(true);
         System.out.println("-------- Iniciando servidor manual ----------------");
+    }
 
-        while (true) {
-            Socket socket = servidor.accept();
-            System.out.println("Aceitando novo cliente " + socket.getPort());
+    public void rodar() throws IOException {
+        while (this.rodando.get()) {
+            try {
+                Socket socket = servidor.accept();
+                System.out.println("Aceitando novo cliente " + socket.getPort());
 
-
-            DistribuirTarefas distribuirTarefas = new DistribuirTarefas(socket);
-            threadPool.execute(distribuirTarefas);
+                DistribuirTarefas distribuirTarefas = new DistribuirTarefas(socket, this);
+                threadPool.execute(distribuirTarefas);
+            }catch (SocketException e){
+                System.out.println("Conexão interrompida, saindo do loop");
+            }
         }
+    }
+
+    public void parar() throws IOException {
+        this.rodando.set(false);
+        servidor.close();
+        threadPool.shutdown();
+    }
+
+
+
+
+
+    public static void main(String[] args) throws IOException {
+
+        ServidorTarefas servidorTarefas = new ServidorTarefas();
+        servidorTarefas.rodar();
+
+
 
 
     }
