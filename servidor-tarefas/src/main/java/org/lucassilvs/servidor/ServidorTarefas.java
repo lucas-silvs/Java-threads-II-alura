@@ -18,7 +18,7 @@ public class ServidorTarefas {
 
     public ServidorTarefas() throws IOException {
         this.servidor = new ServerSocket(5000);
-        this.threadPool = Executors.newCachedThreadPool();  // Tamanho dinâmico
+        this.threadPool = Executors.newCachedThreadPool(new FabricaDeThread());  // Tamanho dinâmico
         this.rodando = new AtomicBoolean(true);
         System.out.println("-------- Iniciando servidor manual ----------------");
     }
@@ -29,7 +29,7 @@ public class ServidorTarefas {
                 Socket socket = servidor.accept();
                 System.out.println("Aceitando novo cliente " + socket.getPort());
 
-                DistribuirTarefas distribuirTarefas = new DistribuirTarefas(socket, this);
+                DistribuirTarefas distribuirTarefas = new DistribuirTarefas(socket, this, threadPool);
                 threadPool.execute(distribuirTarefas);
             }catch (SocketException e){
                 System.out.println("Conexão interrompida, saindo do loop");

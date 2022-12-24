@@ -1,8 +1,12 @@
 package org.lucassilvs.servidor;
 
+import org.lucassilvs.servidor.comandos.ComandoC1;
+import org.lucassilvs.servidor.comandos.ComandoC2;
+
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
 
 public class DistribuirTarefas implements Runnable{
 
@@ -11,9 +15,13 @@ public class DistribuirTarefas implements Runnable{
 
     private ServidorTarefas servidorTarefas;
 
-    public DistribuirTarefas(Socket socket, ServidorTarefas servidorTarefas) {
+    private ExecutorService threadPool;
+
+    public DistribuirTarefas(Socket socket, ServidorTarefas servidorTarefas, ExecutorService threadPool) {
         this.socket = socket;
         this.servidorTarefas = servidorTarefas;
+        this.threadPool = threadPool;
+
     }
 
     @Override
@@ -34,11 +42,13 @@ public class DistribuirTarefas implements Runnable{
 
                 switch (comando){
                     case "c1": {
-                        saidaCliente.println("Comando C1 executado");
+                        ComandoC1 comandoC1 = new ComandoC1(saidaCliente);
+                        this.threadPool.execute(comandoC1);
                         break;
                     }
                     case "c2":{
-                        saidaCliente.println("Comando C2 executado");
+                        ComandoC2 comandoC2 = new ComandoC2(saidaCliente);
+                        this.threadPool.execute(comandoC2);
                         break;
                     }
                     case "off":{

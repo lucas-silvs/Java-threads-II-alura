@@ -11,20 +11,29 @@ public class ServidorDeTeste {
     }
 
     private void rodar() {
-        new Thread(new Runnable() {
+        Thread thread = new Thread(new Runnable() {
 
             public void run() {
-                System.out.println("Servidor começando, estaRodando = " + estaRodando );
+                System.out.println("Servidor começando, estaRodando = " + estaRodando);
 
-                while(!estaRodando) {}
+                while (!estaRodando) {
+                }
 
-                System.out.println("Servidor rodando, estaRodando = " + estaRodando );
+                if(estaRodando){
+                    throw new RuntimeException("Deu erro na Thread");
+                }
+                System.out.println("Servidor rodando, estaRodando = " + estaRodando);
 
-                while(estaRodando) {}
+                while (estaRodando) {
+                }
 
-                System.out.println("Servidor terminando, estaRodando = " + estaRodando );
+                System.out.println("Servidor terminando, estaRodando = " + estaRodando);
             }
-        }).start();
+        });
+
+        thread.setUncaughtExceptionHandler(new TratadorDeError());
+
+        thread.start();
     }
 
     private void alterandoAtributo() throws InterruptedException {
