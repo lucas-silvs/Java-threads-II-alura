@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ServidorTarefas {
@@ -16,10 +14,14 @@ public class ServidorTarefas {
 
     private AtomicBoolean rodando;
 
+    private BlockingQueue<String> filaComandos;
+
     public ServidorTarefas() throws IOException {
         this.servidor = new ServerSocket(5000);
         this.threadPool = Executors.newCachedThreadPool(new FabricaDeThread());  // Tamanho dinâmico
         this.rodando = new AtomicBoolean(true);
+        this.filaComandos = new ArrayBlockingQueue<>(2);
+
         System.out.println("-------- Iniciando servidor manual ----------------");
     }
 
@@ -29,7 +31,7 @@ public class ServidorTarefas {
                 Socket socket = servidor.accept();
                 System.out.println("Aceitando novo cliente " + socket.getPort());
 
-                DistribuirTarefas distribuirTarefas = new DistribuirTarefas(socket, this, threadPool);
+                DistribuirTarefas distribuirTarefas = new DistribuirTarefas(socket, filaComandos, this, threadPool);
                 threadPool.execute(distribuirTarefas);
             }catch (SocketException e){
                 System.out.println("Conexão interrompida, saindo do loop");

@@ -8,24 +8,35 @@ import org.lucassilvs.servidor.comandos.JuntaResultadosFutureComandoC2;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 
 public class DistribuirTarefas implements Runnable{
 
 
     private Socket socket;
 
+    private BlockingQueue<String> filaComandos;
     private ServidorTarefas servidorTarefas;
 
     private ExecutorService threadPool;
 
-    public DistribuirTarefas(Socket socket, ServidorTarefas servidorTarefas, ExecutorService threadPool) {
+    public DistribuirTarefas(Socket socket, BlockingQueue<String> filaComandos, ServidorTarefas servidorTarefas, ExecutorService threadPool) {
         this.socket = socket;
+        this.filaComandos = filaComandos;
         this.servidorTarefas = servidorTarefas;
         this.threadPool = threadPool;
+        iniciarConsumidores();
 
+    }
+
+    private void iniciarConsumidores() {
+        int quantidadeConsumidores = 2;
+        for (int i = 0; i < quantidadeConsumidores; i++) {
+            TarefaConsumir tarefaConsumir = new TarefaConsumir(filaComandos);
+            this.threadPool.execute(tarefaConsumir);
+        }
     }
 
     @Override
@@ -67,11 +78,18 @@ public class DistribuirTarefas implements Runnable{
 
                         break;
                     }
+                    case "c3":{
+                        this.filaComandos.put(comando); // Bloqueia caso chegue no limite total da fila
+                        saidaCliente.println("Adicionando comando na fila");
+
+                        break;
+                    }
                     case "off":{
                         saidaCliente.println("Desligando Servidor");
                         servidorTarefas.parar();
                         break;
                     }
+
                     default:{
                         saidaCliente.println("Comando não encontrado. Comando: " + comando);
                         break;
